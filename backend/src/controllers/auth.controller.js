@@ -61,6 +61,7 @@ export const signin = async (req, res) => {
         message: "Invalid password!",
       });
     }
+    generateToken(user._id, res);
     res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
@@ -104,5 +105,13 @@ export const updateProfile = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error While Update" });
+  }
+};
+
+export const checkAuth = async (req, res) => {
+  try {
+    res.status(200).json(req.user);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error While checking auth" });
   }
 };

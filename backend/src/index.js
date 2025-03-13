@@ -11,6 +11,7 @@ const PORT = process.env.PORT;
 
 //create app
 const app = express();
+app.use(cookieParser());
 
 //connect data base
 // try {
@@ -26,8 +27,9 @@ app.use(cors({
     origin: FRONTEND_URL, 
     credentials: true 
 }));
-app.use(express.json());
-app.use(cookieParser());
+app.use(express.json({
+  limit: "50mb",
+}));
 
 
 app.get("/", (req, res) => {
