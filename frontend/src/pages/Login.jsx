@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import AuthImagePattern from "../components/AuthImagePattern";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";  // เปลี่ยนเป็น react-router-dom สำหรับ React Router v6
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
 
 const LoginPage = () => {
@@ -10,11 +10,11 @@ const LoginPage = () => {
     email: "",
     password: "",
   });
-  const { login, isLoggingIn } = useAuthStore();
+  const { Login, isLoggingIn } = useAuthStore();  // แก้ชื่อจาก signin เป็น Login
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    login(formData);
+    Login(formData);  // ใช้ฟังก์ชัน Login จาก store
   };
 
   return (

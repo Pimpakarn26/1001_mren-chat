@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate } from 'react-router-dom'; // เพิ่ม import ของ Navigate
+import { Route, Routes, Navigate } from 'react-router'; // เพิ่ม import ของ Navigate
 import Home from './pages/Home';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
@@ -7,12 +7,13 @@ import Profile from './pages/Profile';
 import Navbar from './components/Navbar';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/useAuthStore';
+import { useThemeStore } from './store/useThemeStore';
 import { useEffect } from 'react';
 import { Loader } from "lucide-react";
 
 function App() {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
-  const theme = "dark";
+  const {theme} = useThemeStore();
 
   useEffect(() => {
     checkAuth();
@@ -37,7 +38,7 @@ function App() {
         <Route path="/signin" element={!authUser ? <Login /> : <Navigate to="/" />} />
 
         {/* หน้า Setting ไม่ต้องตรวจสอบ authUser */}
-        <Route path="/setting" element={<Setting />} />
+        <Route path="/settings" element={<Setting />} />
 
         {/* การเข้าถึงหน้า Profile */}
         <Route path="/profile" element={authUser ? <Profile /> : <Navigate to="/signin" />} />
