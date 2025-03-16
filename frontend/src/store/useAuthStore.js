@@ -3,7 +3,6 @@ import api from "../services/api";
 import toast from 'react-hot-toast';
 import { io } from "socket.io-client";
 
-const socketUrl = import.meta.env.VITE_SOCKET_URL;  // ใช้ import.meta.env เพื่อดึงค่า socket URL จาก .env
 
 export const useAuthStore = create((set, get) => ({
     authUser: null,
@@ -83,26 +82,16 @@ export const useAuthStore = create((set, get) => ({
     connectSocket: () => {
         const { authUser, socket } = get();
         if (!authUser || socket?.connected) return;
-
-        const newSocket = io(socketUrl, {
-            query: {
-                userId: authUser._id,
-            },
+        const socketURL = import.meta.env.VITE_SOCKET_URL;
+        const newSocket = io(socketURL, {
+          query: { userId: authUser._id },
         });
-
         newSocket.connect();
         set({ socket: newSocket });
-
-        // ฟังเหตุการณ์การเชื่อมต่อผู้ใช้งานออนไลน์
-        newSocket.on("getOnlineUser", (userId) => {
-            set({ onlineUsers: userId });
+        newSocket.on("getOnlineUsers", (userIds) => {
+          set({ onlineUsers: userIds });
         });
-
-        // ฟังก์ชันจัดการการตัดการเชื่อมต่อ
-        newSocket.on("disconnect", () => {
-            set({ socket: null });
-        });
-    },
+      },
 
     // ฟังก์ชันตัดการเชื่อมต่อ Socket
     disconnectSocket: () => {
