@@ -1,11 +1,15 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
-// import cors from "cors"
-// import "dotenv/config";
+import cors from "cors"
+import "dotenv/config";
+
 
 const app = express();
 const server = http.createServer(app);
+console.log(process.env.BASE_URL);
+
+
 
 const io = new Server(server, {
     cors:{
@@ -13,32 +17,46 @@ const io = new Server(server, {
     },
 });
 
+
+const userSocketMap = {}; //{userId:socketId} สร้างคู่ id เพื่อเชื่อมต่อให้ถูกคู่
 export function getReceiverSocketId(userId) {
-    return userSocketMap[userId];
+  return userSocketMap[userId];
 }
-const userSocketMap = {}; // {userId: socketId} สร้างคู่ id เพื่อเชื่อมต่อให้ถูกคู่
 
+//คอยฟังว่าส่งอะไรมา ส่งว่าconnect
 io.on("connection", (socket) => {
-    console.log("A User Connected", socket.id);
-    const { userId } = socket.handshake.query.userId;
-    if(userId){
-        userSocketMap[userId] = socket.id;
+  console.log("A User connected", socket.id);
+  const userId = socket.handshake.query.userId;
+  if (userId) {
+    userSocketMap[userId] = socket.id;
+    console.log("UserSocketMap", userSocketMap);
+    
+  }
+  //แจ้ง/ส่งสัญญาณให้ผู้ใช้
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on("friendRequestSent", (friendId) => {
+    const receiverSocketId = getReceiverSocketId(friendId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("friendRequestReceived", userId);
     }
-    io.emit("getOnlineUser",Object.keys(userSocketMap));
+  })
 
-    socket.on("friendRequestSent", (friendId)=>{
-        const reciverSocketId = getReceiverSocketId(friendId);
-        if(reciverSocketId){
-            io.to(reciverSocketId).emit("friendRequstReceived", userId);
-        }
-    })
-
-    //ลบคนที่ Disconnect ออก ส่งว่าdisconnect
-    socket.on("disconnect", () => {
-        console.log("A User Disconnected", socket.id);
-        delete userSocketMap[userId];
-        console.log("UserSockerMap", userSocketMap);
-    });
+  socket.on("friendRequestAccepted", (friendId) => {
+    const receiverSocketId = getReceiverSocketId(friendId);
+    if (receiverSocketId) {
+        io.to(receiverSocketId).emit("friendRequestAccepted", userId);
+    }
 });
 
-export {io, app, server};
+
+  //ลบคนที่ Disconnect ออก ส่งว่าdisconnect
+  socket.on("disconnect", () => {
+    console.log("A User disconnected", socket.id);
+    delete userSocketMap[userId];
+  });
+});
+
+export { io, app, server };
+
+
