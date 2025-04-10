@@ -36,7 +36,7 @@ instance.interceptors.response.use(
       // Handle token expiration
       if (error.response.status === 401) {
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        window.location.href = "/signin";
       }
       
       // Handle other errors
