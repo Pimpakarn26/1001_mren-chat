@@ -18,11 +18,10 @@ app.use(express.json());
 app.use(cookieParser());
 //allow web can connect app
 //origin=BASE_URL: allow web can connect to app
-app.use(cors({ 
-    origin: process.env.FRONTEND_URL, 
-    credentials: true 
+app.use(cors({
+  origin: "https://1001-mren-chat.vercel.app", // ต้องตรงกับ frontend domain ที่ deploy
+  credentials: true, // ต้องมีถ้าใช้ cookie
 }));
-
 
 app.get("/", (req, res) => {
   res.send("<h1>RESTFUL  SERVICE FOR MREN CHAT PROJECT</h1>");
