@@ -19,8 +19,9 @@ export const useChatStore = create((set, get) => ({
         const res = await api.get("/message/users");
         set({ users: res.data.users });
       } catch (error) {
+        console.error("Error fetching users:", error);
         toast.error(
-          error.response.data.message ||
+          error.response?.data?.message ||
             "Something went wrong while fetching users"
         );
       } finally {
@@ -33,8 +34,9 @@ export const useChatStore = create((set, get) => ({
         const res = await api.get(`/message/${userId}`);
         set({ messages: res.data });
       } catch (error) {
+        console.error("Error getting messages:", error);
         toast.error(
-          error.response.data.message ||
+          error.response?.data?.message ||
             "Something went wrong while getting message"
         );
       } finally {
@@ -50,8 +52,9 @@ export const useChatStore = create((set, get) => ({
         );
         set({ messages: [...messages, res.data] });
       } catch (error) {
+        console.error("Error sending message:", error);
         toast.error(
-          error.response.data.message ||
+          error.response?.data?.message ||
             "Something went wrong while sending message"
         );
       }
@@ -61,6 +64,8 @@ export const useChatStore = create((set, get) => ({
   
       if (!selectedUser) return;
       const socket = useAuthStore.getState().socket;
+      
+      if (!socket) return;
   
       socket.on("newMessage", (newMessage) => {
         const isMessageSendFromSelectedUser =
@@ -73,7 +78,9 @@ export const useChatStore = create((set, get) => ({
     },
     unsubscribeFromMessages: () => {
       const socket = useAuthStore.getState().socket;
-      socket.off("newMessage");
+      if (socket) {
+        socket.off("newMessage");
+      }
     },
   
     addFriend: async (friendId) => {
@@ -87,6 +94,7 @@ export const useChatStore = create((set, get) => ({
   
         set({ friendRequestSent: true });
       } catch (error) {
+        console.error("Error adding friend:", error);
         toast.error(error.response?.data?.message || "Failed to send request");
       }
     },
@@ -95,10 +103,14 @@ export const useChatStore = create((set, get) => ({
       try {
         const res = await api.post("/friend/accept", { friendId });
         toast.success(res.data.message);
-        useAuthStore.getState().socket.emit("friendRequestAccepted", friendId);
+        const socket = useAuthStore.getState().socket;
+        if (socket) {
+          socket.emit("friendRequestAccepted", friendId);
+        }
   
         set({ isFriend: true, friendRequestReceived: false });
       } catch (error) {
+        console.error("Error accepting friend request:", error);
         toast.error(error.response?.data?.message || "Failed to accept request");
       }
     },

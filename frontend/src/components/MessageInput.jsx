@@ -7,7 +7,7 @@ const MessageInput = () => {
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const fileInputRef = useRef(null);
-  const { setMessage, isFriend } = useChatStore();
+  const { setMessage, isFriend, selectedUser } = useChatStore();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -31,6 +31,12 @@ const MessageInput = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim() && !imagePreview) return;
+    
+    // Check if user is friend
+    if (!isFriend) {
+      toast.error("You need to be friends with this user to send messages");
+      return;
+    }
 
     try {
       await setMessage({
@@ -44,8 +50,13 @@ const MessageInput = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("Failed to send message:", error);
+      toast.error("Failed to send message. Please try again.");
     }
   };
+
+  if (!selectedUser) {
+    return null;
+  }
 
   return (
     <div className="p-4 w-full">
@@ -74,7 +85,7 @@ const MessageInput = () => {
           <input
             type="text"
             className="w-full input input-bordered rounded-lg input-sm sm:input-md"
-            placeholder="Type a message..."
+            placeholder={isFriend ? "Type a message..." : "You must be friends to send messages"}
             value={text}
             onChange={(e) => setText(e.target.value)}
             disabled={!isFriend}
@@ -100,7 +111,7 @@ const MessageInput = () => {
         <button
           type="submit"
           className="btn btn-sm btn-circle"
-          disabled={!text.trim() && !imagePreview}
+          disabled={(!text.trim() && !imagePreview) || !isFriend}
         >
           <Send size={22} />
         </button>

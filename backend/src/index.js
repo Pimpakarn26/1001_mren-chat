@@ -3,14 +3,14 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./lib/db.js";
-import { app, server } from "./lib/socket.js";
 import authRouter from "./routes/auth.router.js";
-import messageRouter from "./models/message.model.js";
+import { app, server } from "./lib/socket.js";
+import messageRouter from "./routes/message.router.js";
 import friendRouter from "./routes/friend.router.js";
 
 dotenv.config();
 
-const FRONTEND_URL = process.env.FRONTEND_URL;
+// const FRONTEND_URL = process.env.FRONTEND_URL;
 const PORT = process.env.PORT;
 
 //create app
@@ -19,7 +19,7 @@ app.use(cookieParser());
 //allow web can connect app
 //origin=BASE_URL: allow web can connect to app
 app.use(cors({ 
-    origin: FRONTEND_URL, 
+    origin: process.env.FRONTEND_URL, 
     credentials: true 
 }));
 

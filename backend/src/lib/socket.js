@@ -7,8 +7,6 @@ import "dotenv/config";
 
 const app = express();
 const server = http.createServer(app);
-console.log(process.env.BASE_URL);
-
 
 
 const io = new Server(server, {

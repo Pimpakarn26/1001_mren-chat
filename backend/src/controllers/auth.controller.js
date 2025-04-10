@@ -13,7 +13,7 @@ export const signup = async (req, res) => {
     //ถ้าเเม่กับลูกไม่เหมือนกันต้องเขียน email:email
     const user = await User.findOne({ email });
     if (user) {
-      res.status(400).json({ message: "Email already exists" });
+      return res.status(400).json({ message: "Email already exists" });
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -28,17 +28,17 @@ export const signup = async (req, res) => {
       const token = generateToken(newUser._id, res);
       await newUser.save();
 
-      res.status(201).json({
+      return res.status(201).json({
         _id: newUser._id,
         fullName: newUser.fullName,
         email: newUser.email,
         profilePic: newUser.profilePic,
       });
     } else {
-      res.status(400).json({ message: "Invalid User Data" });
+      return res.status(400).json({ message: "Invalid User Data" });
     }
   } catch (error) {
-    res
+    return res
       .status(500)
       .json({ message: "Internal Server Error While registering user" });
   }
@@ -47,12 +47,12 @@ export const signup = async (req, res) => {
 export const signin = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res.status(400).json({ message: "All fields are required" });
+    return res.status(400).json({ message: "All fields are required" });
   }
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "User not found" });
     }
 
     const passwordIsValid = bcrypt.compareSync(password, user.password);
@@ -62,14 +62,14 @@ export const signin = async (req, res) => {
       });
     }
     generateToken(user._id, res);
-    res.status(200).json({
+    return res.status(200).json({
       _id: user._id,
       fullName: user.fullName,
       email: user.email,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error While signing in" });
+    return res.status(500).json({ message: "Internal Server Error While signing in" });
   }
 };
 
@@ -78,8 +78,10 @@ export const logout = async (req, res) => {
     //ลบ token ออกจาก cookie
     res.clearCookie("jwt", "", { maxAge: 0 });
     // ส่งข้อความว่า logout สำเร็จ
-    res.status(200).json({ message: "Logout Success" });
-  } catch (error) {}
+    return res.status(200).json({ message: "Logout Success" });
+  } catch (error) {
+    return res.status(500).json({ message: "Error while logging out" });
+  }
 };
 
 export const updateProfile = async (req, res) => {
@@ -99,19 +101,23 @@ export const updateProfile = async (req, res) => {
     );
 
     if (updateUser) {
-      res.status(200).json(updateUser);
+      return res.status(200).json(updateUser);
     } else {
-      res.status(500).json({ message: "Error while Updating profile picture" });
+      return res.status(500).json({ message: "Error while Updating profile picture" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error While Update" });
+    return res.status(500).json({ message: "Internal Server Error While Update" });
   }
 };
 
 export const checkAuth = async (req, res) => {
   try {
-    res.status(200).json(req.user);
+    console.log(req.user);
+
+    return res.status(200).json(req.user);
   } catch (error) {
-    res.status(500).json({ message: "Internal Server Error While checking auth" });
+    return res
+      .status(500)
+      .json({ message: "Internal Server Error while checking Auth" });
   }
 };

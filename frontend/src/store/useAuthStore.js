@@ -18,10 +18,26 @@ export const useAuthStore = create((set, get) => ({
         try {
             const res = await api.get("/auth/check");
             set({ authUser: res.data });
+            return res.data;
         } catch (error) {
+            console.error("Auth check error:", error);
             set({ authUser: null });
+            return null;
         } finally {
             set({ isCheckingAuth: false });
+        }
+    },
+    
+    // ฟังก์ชันอัพเดทข้อมูลผู้ใช้เพื่อให้ข้อมูลเพื่อนเป็นปัจจุบัน
+    refreshUserData: async () => {
+        try {
+            const res = await api.get("/auth/check");
+            set({ authUser: res.data });
+            console.log("User data refreshed:", res.data);
+            return res.data;
+        } catch (error) {
+            console.error("Failed to refresh user data:", error);
+            return null;
         }
     },
 
@@ -33,7 +49,8 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data });
             toast.success("Account created successfully");
         } catch (error) {
-            toast.error(error.response.data.message || "Sign Up Failed");
+            console.error("Signup error:", error);
+            toast.error(error.response?.data?.message || "Sign Up Failed");
         } finally {
             set({ isSigningUp: false });
         }
@@ -47,7 +64,8 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data });
             toast.success("Logged in successfully");
         } catch (error) {
-            toast.error(error.response.data.message || "Sign in Failed");
+            console.error("Login error:", error);
+            toast.error(error.response?.data?.message || "Sign in Failed");
         } finally {
             set({ isLoggingIn: false });  // แก้ไขชื่อจาก isLogginIn เป็น isLoggingIn
         }
@@ -60,7 +78,8 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: null });
             toast.success("Logged out successfully");
         } catch (error) {
-            toast.error(error.response.data.message || "Logout Failed");
+            console.error("Logout error:", error);
+            toast.error(error.response?.data?.message || "Logout Failed");
         }
     },
 
@@ -72,7 +91,8 @@ export const useAuthStore = create((set, get) => ({
             set({ authUser: res.data });
             toast.success("Profile updated successfully");
         } catch (error) {
-            toast.error(error.response.data.message || "Update Profile Failed");
+            console.error("Update profile error:", error);
+            toast.error(error.response?.data?.message || "Update Profile Failed");
         } finally {
             set({ isUpdatingProfile: false });
         }
@@ -83,15 +103,19 @@ export const useAuthStore = create((set, get) => ({
         const { authUser, socket } = get();
         if (!authUser || socket?.connected) return;
         const socketURL = import.meta.env.VITE_SOCKET_URL;
-        const newSocket = io(socketURL, {
-          query: { userId: authUser._id },
-        });
-        newSocket.connect();
-        set({ socket: newSocket });
-        newSocket.on("getOnlineUsers", (userIds) => {
-          set({ onlineUsers: userIds });
-        });
-      },
+        try {
+            const newSocket = io(socketURL, {
+              query: { userId: authUser._id },
+            });
+            newSocket.connect();
+            set({ socket: newSocket });
+            newSocket.on("getOnlineUsers", (userIds) => {
+              set({ onlineUsers: userIds });
+            });
+        } catch (error) {
+            console.error("Socket connection error:", error);
+        }
+    },
 
     // ฟังก์ชันตัดการเชื่อมต่อ Socket
     disconnectSocket: () => {
