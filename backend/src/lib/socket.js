@@ -1,36 +1,46 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
-import cors from "cors"
+import cors from "cors";
 import "dotenv/config";
-
+import cookieParser from "cookie-parser";
 
 const app = express();
 const server = http.createServer(app);
 
+// ✅ CORS for Express
+app.use(cors({
+  origin: process.env.FRONTEND_URL, // "https://1001-mren-chat.vercel.app"
+  credentials: true,
+}));
 
+// ✅ Middleware for JSON and cookies
+app.use(express.json());
+app.use(cookieParser());
+
+// ✅ CORS for Socket.IO
 const io = new Server(server, {
-    cors:{
-        origin:[process.env.FRONTEND_URL],
-    },
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  },
 });
 
+const userSocketMap = {}; // { userId: socketId }
 
-const userSocketMap = {}; //{userId:socketId} สร้างคู่ id เพื่อเชื่อมต่อให้ถูกคู่
 export function getReceiverSocketId(userId) {
   return userSocketMap[userId];
 }
 
-//คอยฟังว่าส่งอะไรมา ส่งว่าconnect
 io.on("connection", (socket) => {
   console.log("A User connected", socket.id);
   const userId = socket.handshake.query.userId;
+
   if (userId) {
     userSocketMap[userId] = socket.id;
     console.log("UserSocketMap", userSocketMap);
-    
   }
-  //แจ้ง/ส่งสัญญาณให้ผู้ใช้
+
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("friendRequestSent", (friendId) => {
@@ -38,17 +48,15 @@ io.on("connection", (socket) => {
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("friendRequestReceived", userId);
     }
-  })
+  });
 
   socket.on("friendRequestAccepted", (friendId) => {
     const receiverSocketId = getReceiverSocketId(friendId);
     if (receiverSocketId) {
-        io.to(receiverSocketId).emit("friendRequestAccepted", userId);
+      io.to(receiverSocketId).emit("friendRequestAccepted", userId);
     }
-});
+  });
 
-
-  //ลบคนที่ Disconnect ออก ส่งว่าdisconnect
   socket.on("disconnect", () => {
     console.log("A User disconnected", socket.id);
     delete userSocketMap[userId];
@@ -56,5 +64,3 @@ io.on("connection", (socket) => {
 });
 
 export { io, app, server };
-
-
