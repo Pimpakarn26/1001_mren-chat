@@ -1,7 +1,5 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors";
-import cookieParser from "cookie-parser";
 import { connectDB } from "./lib/db.js";
 import authRouter from "./routes/auth.router.js";
 import { app, server } from "./lib/socket.js";
@@ -10,29 +8,19 @@ import friendRouter from "./routes/friend.router.js";
 
 dotenv.config();
 
-// const FRONTEND_URL = process.env.FRONTEND_URL;
 const PORT = process.env.PORT;
 
-//create app
-app.use(express.json());
-app.use(cookieParser());
-//allow web can connect app
-//origin=BASE_URL: allow web can connect to app
-app.use(cors({
-  origin: "https://1001-mren-chat.vercel.app", // ต้องตรงกับ frontend domain ที่ deploy
-  credentials: true, // ต้องมีถ้าใช้ cookie
-}));
-
+// Routes
 app.get("/", (req, res) => {
-  res.send("<h1>RESTFUL  SERVICE FOR MREN CHAT PROJECT</h1>");
+  res.send("<h1>RESTFUL SERVICE FOR MREN CHAT PROJECT</h1>");
 });
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/message", messageRouter);
 app.use("/api/v1/friend", friendRouter);
 
-
+// Start server
 server.listen(PORT, () => {
-    console.log("Server is running on http://localhost:" + PORT);
-    connectDB();
+  console.log("Server is running on http://localhost:" + PORT);
+  connectDB();
 });
